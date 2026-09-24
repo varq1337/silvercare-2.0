@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>SilverCare - Ultimate Edition</title>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #f1f5f9; --bg-surface: #ffffff; --bg-surface-blur: rgba(255, 255, 255, 0.85);
+    --text-900: #0f172a; --text-600: #475569; --text-400: #94a3b8;
+    --primary: #2563eb; --primary-hover: #1d4ed8; --primary-glow: rgba(37, 99, 235, 0.25);
+    --secondary: #8b5cf6; --success: #10b981; --danger: #ef4444; --danger-glow: rgba(239, 68, 68, 0.3);
+    --border: #e2e8f0; --radius-sm: 12px; --radius-md: 20px; --radius-lg: 32px;
+    --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.05); --shadow-lg: 0 20px 40px -10px rgba(0,0,0,0.1);
+  }
+  [data-theme="dark"] {
+    --bg-base: #020617; --bg-surface: #0f172a; --bg-surface-blur: rgba(15, 23, 42, 0.85);
+    --text-900: #f8fafc; --text-600: #94a3b8; --text-400: #64748b;
+    --primary: #3b82f6; --primary-glow: rgba(59, 130, 246, 0.2);
+    --border: #1e293b; --shadow-sm: 0 4px 6px -1px rgba(0,0,0,0.4); --shadow-lg: 0 20px 40px -10px rgba(0,0,0,0.6);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg-base); display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; transition: 0.4s; }
+  
+  #app { background: var(--bg-surface); width: 100%; max-width: 440px; height: 100vh; max-height: 920px; display: flex; flex-direction: column; box-shadow: var(--shadow-lg); border-radius: var(--radius-lg); position: relative; overflow: hidden; border: 1px solid var(--border); }
+  @media (max-width: 480px) { #app { border-radius: 0; max-height: 100vh; border: none; } }
+
+  .header { padding: 32px 24px 16px; display: flex; justify-content: space-between; align-items: center; background: var(--bg-surface-blur); backdrop-filter: blur(12px); z-index: 50; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+  .logo { display: flex; align-items: center; gap: 10px; }
+  .logo-mark { width: 36px; height: 36px; background: linear-gradient(135deg, var(--primary), var(--secondary)); border-radius: 12px; display: flex; justify-content: center; align-items: center; color: white; font-weight: 800; font-size: 18px; box-shadow: var(--primary-glow); }
+  .app-name { font-weight: 800; font-size: 22px; color: var(--text-900); letter-spacing: -0.5px; }
+  
+  .page { display: none; flex: 1; flex-direction: column; overflow-y: auto; padding: 24px; scroll-behavior: smooth; }
+  .page.active { display: flex; animation: slideUp 0.4s forwards; }
+  .page::-webkit-scrollbar { display: none; }
+  @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+  .card { background: var(--bg-surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 24px; margin-bottom: 20px; box-shadow: var(--shadow-sm); }
+  .section-title { font-size: 14px; font-weight: 800; color: var(--text-400); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px; }
+  
+  .input-base { width: 100%; padding: 16px 20px; border-radius: var(--radius-sm); border: 1px solid var(--border); background: var(--bg-base); color: var(--text-900); font-size: 15px; font-weight: 500; outline: none; transition: 0.2s; margin-bottom: 16px; }
+  .input-base:focus { border-color: var(--primary); box-shadow: 0 0 0 3px var(--primary-glow); background: var(--bg-surface); }
+  
+  .btn { display: flex; justify-content: center; align-items: center; width: 100%; padding: 18px; border: none; border-radius: var(--radius-md); background: var(--primary); color: white; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 6px 20px var(--primary-glow); transition: 0.2s; gap: 8px; }
+  .btn:active { transform: scale(0.96); }
+  .btn-outline { background: transparent; border: 2px solid var(--border); color: var(--text-900); box-shadow: none; }
+  .btn-danger { background: var(--danger); box-shadow: 0 6px 20px var(--danger-glow); }
+  .btn-small { padding: 10px 16px; font-size: 14px; border-radius: var(--radius-sm); width: auto; }
+
+  .med-row { display: flex; align-items: center; padding: 16px; background: var(--bg-base); border-radius: var(--radius-md); margin-bottom: 12px; border: 1px solid transparent; transition: 0.3s; gap: 16px; }
+  .med-row.due { border-color: var(--primary); background: var(--primary-glow); }
+  .med-row.taken { opacity: 0.5; filter: grayscale(1); }
+  .med-time-badge { width: 56px; height: 56px; border-radius: 16px; background: var(--bg-surface); display: flex; justify-content: center; align-items: center; font-weight: 800; font-size: 15px; color: var(--primary); box-shadow: var(--shadow-sm); flex-shrink: 0; }
+  .med-content { flex: 1; }
+  .med-content h4 { font-size: 17px; font-weight: 700; color: var(--text-900); margin-bottom: 4px; }
+  .med-content p { font-size: 13px; font-weight: 600; color: var(--text-600); }
+  .med-check { width: 44px; height: 44px; border-radius: 14px; border: none; background: var(--primary); color: white; display: flex; justify-content: center; align-items: center; font-size: 20px; cursor: pointer; box-shadow: 0 4px 12px var(--primary-glow); }
+  .med-row.taken .med-check { background: var(--success); box-shadow: none; }
+
+  .analytics-container { height: 180px; width: 100%; position: relative; margin-bottom: 24px; }
+  #mainChart { width: 100%; height: 100%; }
+  .chart-overlay { position: absolute; top: 20px; left: 24px; }
+  .chart-score { font-size: 40px; font-weight: 800; color: var(--primary); line-height: 1; letter-spacing: -1px; }
+
+  .medical-id-card { background: linear-gradient(135deg, #ef4444, #991b1b); color: white; border-radius: var(--radius-md); padding: 24px; margin-bottom: 24px; position: relative; overflow: hidden; box-shadow: 0 10px 25px rgba(239, 68, 68, 0.4); }
+  .medical-id-card::after { content: '✚'; position: absolute; right: -20px; top: -20px; font-size: 140px; opacity: 0.1; line-height: 1; }
+  .id-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; position: relative; z-index: 2; }
+  .id-item p { font-size: 12px; opacity: 0.8; text-transform: uppercase; font-weight: 700; margin-bottom: 4px; }
+  .id-item h5 { font-size: 15px; font-weight: 700; line-height: 1.3; }
+
+  .chat-layout { flex: 1; display: flex; flex-direction: column; overflow-y: auto; gap: 16px; padding-bottom: 20px; }
+  .chat-layout::-webkit-scrollbar { display: none; }
+  .bubble { padding: 16px 20px; border-radius: var(--radius-md); max-width: 85%; font-size: 15px; font-weight: 500; line-height: 1.5; animation: popIn 0.3s forwards; }
+  @keyframes popIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+  .bg-ai { background: var(--bg-base); color: var(--text-900); border-bottom-left-radius: 4px; border: 1px solid var(--border); }
+  .bg-user { background: linear-gradient(135deg, var(--primary), var(--secondary)); color: white; align-self: flex-end; border-bottom-right-radius: 4px; box-shadow: 0 4px 15px var(--primary-glow); }
+  .bg-alert { background: rgba(239, 68, 68, 0.1); color: var(--danger); border: 1px solid var(--danger); border-bottom-left-radius: 4px; }
+  
+  .chat-input-bar { display: flex; gap: 12px; padding: 16px 24px 24px; background: var(--bg-surface-blur); backdrop-filter: blur(12px); border-top: 1px solid var(--border); margin: 0 -24px -24px; position: sticky; bottom: 0; z-index: 10; }
+  .chat-input-bar input { flex: 1; margin: 0; }
+  .chat-input-bar button { width: 54px; height: 54px; border-radius: var(--radius-sm); border: none; background: var(--primary); color: white; font-size: 20px; cursor: pointer; display: flex; justify-content: center; align-items: center; box-shadow: 0 4px 15px var(--primary-glow); }
+
+  .nav-bar { display: flex; justify-content: space-around; padding: 12px 12px 24px; background: var(--bg-surface-blur); backdrop-filter: blur(12px); border-top: 1px solid var(--border); z-index: 50; flex-shrink: 0; }
+  .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-400); background: none; border: none; cursor: pointer; font-weight: 700; font-size: 11px; text-transform: uppercase; transition: 0.3s; }
+  .nav-icon { font-size: 24px; opacity: 0.5; filter: grayscale(1); transition: 0.3s; transform: translateY(0); }
+  .nav-item.active { color: var(--primary); }
+  .nav-item.active .nav-icon { opacity: 1; filter: grayscale(0); transform: translateY(-4px); }
+
+  #sosOverlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: var(--danger); z-index: 999; display: flex; flex-direction: column; justify-content: center; align-items: center; color: white; opacity: 0; pointer-events: none; transition: 0.4s; }
+  #sosOverlay.active { opacity: 1; pointer-events: auto; }
+  .sos-pulse { width: 220px; height: 220px; border-radius: 50%; border: 4px solid rgba(255,255,255,0.3); display: flex; justify-content: center; align-items: center; font-size: 96px; font-weight: 800; animation: sosPulse 1s infinite; margin-bottom: 48px; }
+  @keyframes sosPulse { 0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.6); } 100% { box-shadow: 0 0 0 50px rgba(255,255,255,0); } }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <header class="header" id="sysHeader">
+    <div class="logo">
+      <div class="logo-mark">S</div>
+      <div class="app-name">SilverCare</div>
+    </div>
+    <div style="display: flex; gap: 8px;">
+      <button class="btn-outline btn-small" style="width: 40px; height: 40px; padding: 0;" onclick="A11y.readScreen()" title="Озвучить">🔊</button>
+      <button class="btn-outline btn-small" style="width: 40px; height: 40px; padding: 0;" onclick="App.toggleTheme()" id="themeToggleBtn">🌙</button>
+    </div>
+  </header>
+
+  <div id="view-auth" class="page">
+    <div style="flex:1; display:flex; flex-direction:column; justify-content:center;">
+      <h1 style="font-size: 32px; font-weight: 800; margin-bottom: 12px; color: var(--text-900);" data-i18n="auth_title">Профиль</h1>
+      <p style="color: var(--text-600); margin-bottom: 32px; font-weight: 500;" data-i18n="auth_desc">Заполните данные для начала.</p>
+      <input type="text" id="authName" class="input-base" data-i18n-ph="auth_name_ph" placeholder="Имя (Иван)">
+      <input type="tel" id="authPhone" class="input-base" data-i18n-ph="auth_phone_ph" placeholder="Телефон (+7...)">
+      <button class="btn" onclick="Auth.login()" data-i18n="auth_btn">Начать работу</button>
+    </div>
+  </div>
+
+  <div id="view-dashboard" class="page active">
+    <div class="analytics-container card" style="padding: 0;">
+      <div class="chart-overlay">
+        <div class="chart-score" id="scorePercent">100%</div>
+        <div style="font-size: 13px; font-weight: 700; color: var(--text-600); margin-top: 4px;" data-i18n="dash_score_lbl">Соблюдение графика</div>
+      </div>
+      <canvas id="adherenceChart"></canvas>
+    </div>
+    <h2 class="section-title" data-i18n="dash_plan">План на сегодня</h2>
+    <div id="todayMedsContainer"></div>
+  </div>
+
+  <div id="view-medical" class="page">
+    <div class="medical-id-card">
+      <h3 style="font-size: 20px; font-weight: 800;">Medical ID</h3>
+      <p style="font-size: 13px; opacity: 0.9; margin-bottom: 20px;" data-i18n="mid_desc">Карта пациента для экстренных служб</p>
+      <h2 style="font-size: 28px; font-weight: 800;" id="midName">Иван</h2>
+      <div class="id-grid">
+        <div class="id-item"><p data-i18n="mid_blood">Группа крови</p><h5 id="midBlood">Не указано</h5></div>
+        <div class="id-item"><p data-i18n="mid_allergy">Аллергии</p><h5 id="midAllergy">Не указано</h5></div>
+        <div class="id-item"><p data-i18n="mid_diag">Диагноз</p><h5 id="midDiag">Не указано</h5></div>
+        <div class="id-item"><p data-i18n="mid_phone">Экстренный тел.</p><h5 id="midPhone">Не указано</h5></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <h2 class="section-title" style="margin:0;" data-i18n="med_db_title">База препаратов</h2>
+        <button class="btn-outline btn-small" onclick="document.getElementById('addMedForm').style.display='block'" data-i18n="btn_add">+ Добавить</button>
+      </div>
+      
+      <div id="addMedForm" style="display: none; background: var(--bg-base); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px;">
+        <input type="text" id="newMedName" class="input-base" data-i18n-ph="med_name_ph" placeholder="Название (Метформин)">
+        <input type="text" id="newMedDose" class="input-base" data-i18n-ph="med_dose_ph" placeholder="Дозировка (500 мг)">
+        <input type="time" id="newMedTime" class="input-base">
+        <div style="display: flex; gap: 8px;">
+          <button class="btn btn-small" onclick="DB.addMed()" data-i18n="btn_save">Сохранить</button>
+          <button class="btn btn-outline btn-small" onclick="document.getElementById('addMedForm').style.display='none'" data-i18n="btn_cancel">Отмена</button>
+        </div>
+      </div>
+      <div id="medsManagerList"></div>
+    </div>
+
+    <button class="btn btn-outline" style="border-color: #25D366; color: #25D366; margin-bottom: 24px;" onclick="Export.toWhatsApp()">
+      <span style="font-size: 20px;">💬</span> <span data-i18n="btn_export">Отправить отчет врачу (WhatsApp)</span>
+    </button>
+
+    <button class="btn btn-danger" onclick="SOS.trigger()" data-i18n="sos_trigger">🚨 Вызвать SOS</button>
+  </div>
+
+  <div id="view-ai" class="page" style="padding-bottom: 0;">
+    <div class="chat-layout" id="chatThread">
+      <div class="bubble bg-ai" id="aiWelcome" data-i18n="ai_welcome">
+        Я анализирую вашу медицинскую базу. Задайте вопрос о совместимости или расписании.
+      </div>
+    </div>
+    <div class="chat-input-bar">
+      <input type="text" id="aiInput" class="input-base" data-i18n-ph="ai_ph" placeholder="Спросите о здоровье..." autocomplete="off">
+      <button onclick="AIAgent.send()">↑</button>
+    </div>
+  </div>
+
+  <div id="view-settings" class="page">
+    <div class="card">
+      <h2 class="section-title" data-i18n="set_sys">Система</h2>
+      <div style="display: flex; justify-content: space-between; align-items: center; padding: 16px 0; border-bottom: 1px solid var(--border);">
+        <span style="font-weight: 600; font-size: 16px;" data-i18n="set_lang">Язык интерфейса</span>
+        <select class="input-base" style="width: auto; margin: 0; padding: 8px 16px;" id="sysLang" onchange="App.setLang()">
+          <option value="ru">Русский</option>
+          <option value="kk">Қазақша</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2 class="section-title" data-i18n="set_med_data">Медицинские данные (Medical ID)</h2>
+      <input type="text" id="editBlood" class="input-base" data-i18n-ph="ph_blood" placeholder="Группа крови (напр. A(II) Rh+)">
+      <input type="text" id="editAllergy" class="input-base" data-i18n-ph="ph_allergy" placeholder="Аллергии">
+      <input type="text" id="editDiag" class="input-base" data-i18n-ph="ph_diag" placeholder="Диагноз">
+      <input type="tel" id="editEPhone" class="input-base" data-i18n-ph="ph_ephone" placeholder="Экстренный номер">
+      <button class="btn" onclick="Auth.saveMedical()" data-i18n="set_save_btn">Обновить карту</button>
+    </div>
+
+    <button class="btn btn-outline" onclick="Auth.logout()" data-i18n="set_logout_btn">Выйти из профиля</button>
+  </div>
+
+  <div id="sosOverlay">
+    <h1 style="font-size: 36px; font-weight: 800; margin-bottom: 16px; letter-spacing: -1px;" data-i18n="sos_title">ЭКСТРЕННЫЙ<br>ВЫЗОВ</h1>
+    <p style="font-size: 16px; font-weight: 600; opacity: 0.9; margin-bottom: 60px;" data-i18n="sos_desc">Передача геопозиции и вызов скорой...</p>
+    <div class="sos-pulse" id="sosCount">5</div>
+    <button class="btn" style="background: white; color: var(--danger); width: calc(100% - 48px); position: absolute; bottom: 40px; font-size: 18px;" onclick="SOS.cancel()" data-i18n="sos_cancel">Отменить вызов</button>
+  </div>
+
+  <nav class="nav-bar" id="sysNav" style="display: none;">
+    <button class="nav-item active" onclick="App.nav('dashboard', this)"><span class="nav-icon">💊</span><span data-i18n="nav_track">Трекер</span></button>
+    <button class="nav-item" onclick="App.nav('medical', this)"><span class="nav-icon">🏥</span><span data-i18n="nav_med">Медкарта</span></button>
+    <button class="nav-item" onclick="App.nav('ai', this)"><span class="nav-icon">✨</span><span data-i18n="nav_ai">Нейросеть</span></button>
+    <button class="nav-item" onclick="App.nav('settings', this)"><span class="nav-icon">⚙️</span><span data-i18n="nav_set">Настройки</span></button>
+  </nav>
+
+</div>
+
+<script>
+const I18N = {
+  ru: {
+    auth_title: 'Профиль', auth_desc: 'Заполните данные для настройки алгоритмов.', auth_btn: 'Начать работу', auth_name_ph: 'Имя (Иван)', auth_phone_ph: 'Телефон (+7)',
+    dash_score_lbl: 'Соблюдение графика', dash_plan: 'План на сегодня', dash_empty: 'Аптечка пуста. Добавьте препараты в медкарте.',
+    mid_desc: 'Карта пациента для экстренных служб', mid_blood: 'Группа крови', mid_allergy: 'Аллергии', mid_diag: 'Диагноз', mid_phone: 'Экстренный тел.',
+    med_db_title: 'База препаратов', btn_add: '+ Добавить', btn_save: 'Сохранить', btn_cancel: 'Отмена', med_name_ph: 'Название (Метформин)', med_dose_ph: 'Дозировка (500 мг)',
+    sos_trigger: '🚨 Вызвать SOS', ai_welcome: 'Я анализирую вашу медицинскую базу. Задайте вопрос о совместимости или расписании.', ai_ph: 'Спросите о здоровье...',
+    set_sys: 'Система', set_lang: 'Язык интерфейса', set_med_data: 'Медицинские данные (Medical ID)', set_save_btn: 'Обновить карту', set_logout_btn: 'Выйти из профиля',
+    ph_blood: 'Группа крови (напр. A(II) Rh+)', ph_allergy: 'Аллергии', ph_diag: 'Диагноз', ph_ephone: 'Экстренный номер',
+    sos_title: 'ЭКСТРЕННЫЙ ВЫЗОВ', sos_desc: 'Передача геопозиции и вызов скорой...', sos_cancel: 'Отменить вызов',
+    nav_track: 'Трекер', nav_med: 'Медкарта', nav_ai: 'Нейросеть', nav_set: 'Настройки', not_set: 'Не указано', btn_export: 'Отправить отчет врачу (WhatsApp)'
+  },
+  kk: {
+    auth_title: 'Профиль', auth_desc: 'Алгоритмдерді баптау үшін деректерді толтырыңыз.', auth_btn: 'Бастау', auth_name_ph: 'Атыңыз', auth_phone_ph: 'Телефон (+7)',
+    dash_score_lbl: 'Графикті сақтау', dash_plan: 'Бүгінгі жоспар', dash_empty: 'Қобдиша бос. Дәрілерді медициналық картаға қосыңыз.',
+    mid_desc: 'Шұғыл қызметтерге арналған пациент картасы', mid_blood: 'Қан тобы', mid_allergy: 'Аллергия', mid_diag: 'Диагноз', mid_phone: 'Шұғыл тел.',
+    med_db_title: 'Дәрілер базасы', btn_add: '+ Қосу', btn_save: 'Сақтау', btn_cancel: 'Болдырмау', med_name_ph: 'Атауы (Метформин)', med_dose_ph: 'Дозасы (500 мг)',
+    sos_trigger: '🚨 SOS шақыру', ai_welcome: 'Мен сіздің медициналық базаңызды талдаймын. Үйлесімділік немесе кесте туралы сұраңыз.', ai_ph: 'Денсаулық туралы сұраңыз...',
+    set_sys: 'Жүйе', set_lang: 'Интерфейс тілі', set_med_data: 'Медициналық деректер (Medical ID)', set_save_btn: 'Картаны жаңарту', set_logout_btn: 'Профильден шығу',
+    ph_blood: 'Қан тобы (мысалы, A(II) Rh+)', ph_allergy: 'Аллергия', ph_diag: 'Диагноз', ph_ephone: 'Шұғыл нөмір',
+    sos_title: 'ШҰҒЫЛ ШАҚЫРУ', sos_desc: 'Геолокацияны беру және жедел жәрдем шақыру...', sos_cancel: 'Шақыруды болдырмау',
+    nav_track: 'Трекер', nav_med: 'Медкарта', nav_ai: 'Нейрожелі', nav_set: 'Баптаулар', not_set: 'Көрсетілмеген', btn_export: 'Дәрігерге есеп жіберу (WhatsApp)'
+  },
+  en: {
+    auth_title: 'Profile', auth_desc: 'Enter details to configure algorithms.', auth_btn: 'Start', auth_name_ph: 'Name (John)', auth_phone_ph: 'Phone (+1)',
+    dash_score_lbl: 'Adherence Score', dash_plan: 'Today\'s Plan', dash_empty: 'Med kit is empty. Add meds in Medical ID.',
+    mid_desc: 'Patient card for emergency services', mid_blood: 'Blood Type', mid_allergy: 'Allergies', mid_diag: 'Diagnosis', mid_phone: 'Emergency Phone',
+    med_db_title: 'Medications Base', btn_add: '+ Add', btn_save: 'Save', btn_cancel: 'Cancel', med_name_ph: 'Name (Metformin)', med_dose_ph: 'Dosage (500 mg)',
+    sos_trigger: '🚨 Trigger SOS', ai_welcome: 'I am analyzing your medical base. Ask a question about compatibility or schedule.', ai_ph: 'Ask about health...',
+    set_sys: 'System', set_lang: 'Interface Language', set_med_data: 'Medical Data (Medical ID)', set_save_btn: 'Update ID', set_logout_btn: 'Log Out',
+    ph_blood: 'Blood type (e.g. O+)', ph_allergy: 'Allergies', ph_diag: 'Diagnosis', ph_ephone: 'Emergency phone',
+    sos_title: 'EMERGENCY CALL', sos_desc: 'Transmitting location and calling 911...', sos_cancel: 'Cancel Call',
+    nav_track: 'Tracker', nav_med: 'Medical ID', nav_ai: 'AI Agent', nav_set: 'Settings', not_set: 'Not specified', btn_export: 'Send report to doctor (WhatsApp)'
+  }
+};
+
+const Store = {
+  user: JSON.parse(localStorage.getItem('sc_user')) || null,
+  meds: JSON.parse(localStorage.getItem('sc_meds')) || [],
+  lang: localStorage.getItem('sc_lang') || 'ru',
+  theme: localStorage.getItem('sc_theme') || 'light',
+  history: [75, 80, 85, 82, 90, 88, 92],
+
+  save() {
+    localStorage.setItem('sc_user', JSON.stringify(this.user));
+    localStorage.setItem('sc_meds', JSON.stringify(this.meds));
+    localStorage.setItem('sc_lang', this.lang);
+    localStorage.setItem('sc_theme', this.theme);
+  }
+};
+
+function translateUI() {
+  const t = I18N[Store.lang];
+  document.querySelectorAll('[data-i18n]').forEach(el => { if(t[el.getAttribute('data-i18n')]) el.innerText = t[el.getAttribute('data-i18n')]; });
+  document.querySelectorAll('[data-i18n-ph]').forEach(el => { if(t[el.getAttribute('data-i18n-ph')]) el.setAttribute('placeholder', t[el.getAttribute('data-i18n-ph')]); });
+}
+
+const DB = {
+  addMed() {
+    const name = document.getElementById('newMedName').value.trim();
+    const dose = document.getElementById('newMedDose').value.trim();
+    const time = document.getElementById('newMedTime').value;
+    if(!name || !time) return;
+    Store.meds.push({ id: Date.now(), name, dose, time, taken: false });
+    Store.meds.sort((a, b) => a.time.localeCompare(b.time));
+    document.getElementById('newMedName').value = ''; document.getElementById('newMedDose').value = '';
+    document.getElementById('addMedForm').style.display = 'none';
+    Store.save(); UI.renderAll();
+  },
+  delMed(id) { Store.meds = Store.meds.filter(m => m.id !== id); Store.save(); UI.renderAll(); },
+  toggleTaken(id) { const m = Store.meds.find(x => x.id === id); if(m) { m.taken = !m.taken; Store.save(); UI.renderAll(); } }
+};
+
+const UI = {
+  renderAll() {
+    translateUI();
+    if(!Store.user) return;
+    
+    const t = I18N[Store.lang];
+    document.getElementById('midName').innerText = Store.user.name;
+    document.getElementById('midBlood').innerText = Store.user.blood || t.not_set;
+    document.getElementById('midAllergy').innerText = Store.user.allergies || t.not_set;
+    document.getElementById('midDiag').innerText = Store.user.diagnosis || t.not_set;
+    document.getElementById('midPhone').innerText = Store.user.ePhone || Store.user.phone;
+
+    document.getElementById('editBlood').value = Store.user.blood || '';
+    document.getElementById('editAllergy').value = Store.user.allergies || '';
+    document.getElementById('editDiag').value = Store.user.diagnosis || '';
+    document.getElementById('editEPhone').value = Store.user.ePhone || '';
+
+    const todayCont = document.getElementById('todayMedsContainer');
+    const mgrCont = document.getElementById('medsManagerList');
+    todayCont.innerHTML = ''; mgrCont.innerHTML = '';
+
+    if(Store.meds.length === 0) {
+      todayCont.innerHTML = `<p style="color:var(--text-400); text-align:center;">${t.dash_empty}</p>`;
+      Analytics.draw();
+      return;
+    }
+
+    const nowStr = new Date().toTimeString().slice(0,5);
+    Store.meds.forEach(m => {
+      const isDue = !m.taken && m.time <= nowStr;
+      todayCont.innerHTML += `
+        <div class="med-row ${m.taken ? 'taken' : (isDue ? 'due' : '')}">
+          <div class="med-time-badge">${m.time}</div>
+          <div class="med-content"><h4>${m.name}</h4><p>${m.dose}</p></div>
+          <button class="med-check" onclick="DB.toggleTaken(${m.id})">${m.taken ? '✓' : '＋'}</button>
+        </div>`;
+      mgrCont.innerHTML += `
+        <div class="med-row" style="background:transparent; border-bottom:1px solid var(--border); border-radius:0; padding: 12px 0;">
+          <div class="med-content"><h4>${m.name}</h4><p>${m.time} • ${m.dose}</p></div>
+          <button class="btn-outline btn-small" style="color:var(--danger); border-color:var(--danger);" onclick="DB.delMed(${m.id})">✖</button>
+        </div>`;
+    });
+    Analytics.draw();
+  }
+};
+
+const Export = {
+  toWhatsApp() {
+    const taken = Store.meds.filter(m => m.taken).length;
+    const total = Store.meds.length;
+    
+    let text = `Отчет пациента ${Store.user.name}:\nДисциплина: ${taken}/${total} препаратов.\n`;
+    if(Store.user.diagnosis) text += `Диагноз: ${Store.user.diagnosis}\n`;
+    if(Store.user.allergies) text += `Аллергии: ${Store.user.allergies}\n`;
+    
+    text += `\nТекущая база:\n`;
+    Store.meds.forEach(m => { text += `- ${m.name} (${m.time}) ${m.taken ? '✅' : '❌'}\n`; });
+    
+    text += `\nСгенерировано в SilverCare.`;
+    
+    const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
+    window.open(url, '_blank');
+  }
+};
+
+const Analytics = {
+  draw() {
+    const canvas = document.getElementById('adherenceChart');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const dpr = window.devicePixelRatio || 1;
+    const rect = canvas.parentNode.getBoundingClientRect();
+    canvas.width = rect.width * dpr; canvas.height = rect.height * dpr; ctx.scale(dpr, dpr);
+    const w = rect.width; const h = rect.height;
+    ctx.clearRect(0, 0, w, h);
+
+    const scores = Store.history;
+    const isDark = Store.theme === 'dark';
+    const grad = ctx.createLinearGradient(0, 0, 0, h);
+    grad.addColorStop(0, isDark ? 'rgba(59, 130, 246, 0.4)' : 'rgba(37, 99, 235, 0.2)');
+    grad.addColorStop(1, 'rgba(37, 99, 235, 0)');
+
+    ctx.beginPath(); ctx.moveTo(0, h);
+    const pts = scores.map((v, i) => ({ x: (i / (scores.length - 1)) * w, y: h - ((v - 50) / 50) * (h - 80) - 20 }));
+    ctx.lineTo(pts[0].x, pts[0].y);
+    for(let i=0; i<pts.length-1; i++) ctx.quadraticCurveTo(pts[i].x, pts[i].y, (pts[i].x+pts[i+1].x)/2, (pts[i].y+pts[i+1].y)/2);
+    ctx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+    ctx.lineTo(w, h); ctx.fillStyle = grad; ctx.fill();
+
+    ctx.beginPath(); ctx.moveTo(pts[0].x, pts[0].y);
+    for(let i=0; i<pts.length-1; i++) ctx.quadraticCurveTo(pts[i].x, pts[i].y, (pts[i].x+pts[i+1].x)/2, (pts[i].y+pts[i+1].y)/2);
+    ctx.lineTo(pts[pts.length-1].x, pts[pts.length-1].y);
+    ctx.strokeStyle = isDark ? '#60a5fa' : '#2563eb'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.stroke();
+
+    const total = Store.meds.length;
+    const taken = Store.meds.filter(m => m.taken).length;
+    document.getElementById('scorePercent').innerText = total === 0 ? '100%' : `${Math.round((taken/total)*100)}%`;
+  }
+};
+
+const AIAgent = {
+  async send() {
+    const input = document.getElementById('aiInput');
+    const text = input.value.trim();
+    if (!text) return;
+
+    this.print(text, 'user');
+    input.value = '';
+    const loadId = 'l_' + Date.now();
+    this.print('Анализ данных...', 'ai', loadId);
+
+    const medsCtx = Store.meds.map(m => `${m.name} (${m.time})`).join('; ');
+    const u = Store.user;
+    const prompt = `Ты мед-ассистент SilverCare. Пациент: ${u.name}. Аптечка: ${medsCtx}. Группа крови: ${u.blood||'нет'}. Аллергии: ${u.allergies||'нет'}. Диагноз: ${u.diagnosis||'нет'}. Отвечай кратко на вопрос: ${text}`;
+
+    const apiKey = 'СЮДА_ВСТАВЬТЕ_СВОЙ_API_КЛЮЧ'; 
+
+    const getLocalReply = (query) => {
+      const q = query.toLowerCase();
+      const next = Store.meds.find(m => !m.taken);
+      
+      if (u.allergies && q.includes(u.allergies.toLowerCase())) {
+        return `🚨 Внимание! В вашем Medical ID указана аллергия на ${u.allergies}. Категорически избегайте этого препарата!`;
+      }
+      if (q.includes('привет') || q.includes('здравствуй')) {
+        return `Здравствуйте, ${u.name}! Я на связи и вижу вашу медкарту. Чем могу помочь?`;
+      }
+      if (q.includes('пить') || q.includes('лекарств') || q.includes('когда')) {
+        return next ? `По графику вам нужно принять ${next.name} в ${next.time}.` : "На сегодня вы приняли все препараты. Отдыхайте!";
+      }
+      if (q.includes('голов') || q.includes('давлен')) {
+        return "При головной боли рекомендую измерить давление. Если вы принимали препараты от давления, запишите показатели для врача.";
+      }
+      if (q.includes('спасибо')) {
+        return "Рад помочь! Ваше здоровье — мой приоритет.";
+      }
+      return "Я работаю в автономном режиме. Спросите меня «когда пить лекарства», «у меня болит голова» или просто поздоровайтесь.";
+    };
+
+    if (apiKey === 'СЮДА_ВСТАВЬТЕ_СВОЙ_API_КЛЮЧ' || !navigator.onLine) {
+      setTimeout(() => {
+        document.getElementById(loadId).remove();
+        this.print(getLocalReply(text), 'ai');
+      }, 800);
+      return;
+    }
+
+    try {
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+        method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+      });
+      const data = await res.json();
+      
+      document.getElementById(loadId).remove();
+      
+      if (data.error) throw new Error(); 
+      
+      this.print(data.candidates[0].content.parts[0].text.replace(/\*/g, ''), 'ai');
+    } catch (e) {
+      document.getElementById(loadId).remove();
+      this.print(getLocalReply(text), 'ai');
+    }
+  },
+  
+  print(text, type, id='') {
+    const box = document.getElementById('chatThread');
+    const cls = type === 'user' ? 'bg-user' : (type === 'alert' ? 'bg-alert' : 'bg-ai');
+    box.innerHTML += `<div class="bubble ${cls}" id="${id}">${text}</div>`;
+    box.scrollTop = box.scrollHeight;
+  }
+};
+
+const Auth = {
+  login() {
+    const name = document.getElementById('authName').value.trim();
+    const phone = document.getElementById('authPhone').value.trim();
+    if(!name || !phone) return;
+    Store.user = { name, phone, blood: '', allergies: '', diagnosis: '', ePhone: '' };
+    Store.save(); App.init();
+  },
+  logout() { Store.user = null; Store.save(); App.init(); },
+  saveMedical() {
+    Store.user.blood = document.getElementById('editBlood').value.trim();
+    Store.user.allergies = document.getElementById('editAllergy').value.trim();
+    Store.user.diagnosis = document.getElementById('editDiag').value.trim();
+    Store.user.ePhone = document.getElementById('editEPhone').value.trim();
+    Store.save(); UI.renderAll();
+    alert(Store.lang === 'ru' ? 'Данные Medical ID обновлены!' : 'Medical ID Updated!');
+  }
+};
+
+const SOS = {
+  interval: null,
+  trigger() {
+    document.getElementById('sosOverlay').classList.add('active');
+    let left = 5; const timer = document.getElementById('sosCount'); timer.innerText = left;
+    this.interval = setInterval(() => {
+      left--; timer.innerText = left;
+      if(left <= 0) { clearInterval(this.interval); timer.innerText = '📞'; timer.style.fontSize = '96px'; timer.style.border = 'none'; timer.style.animation = 'none'; }
+    }, 1000);
+  },
+  cancel() {
+    clearInterval(this.interval);
+    document.getElementById('sosOverlay').classList.remove('active');
+    const timer = document.getElementById('sosCount'); timer.style.fontSize = '96px'; timer.style.border = '4px solid rgba(255,255,255,0.3)'; timer.style.animation = 'sosPulse 1s infinite';
+  }
+};
+
+const A11y = {
+  readScreen() {
+    if (!('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const next = Store.meds.find(m => !m.taken);
+    let text = `${I18N[Store.lang].auth_title} ${Store.user.name}. `;
+    if(next) text += Store.lang === 'en' ? `Next med: ${next.name} at ${next.time}.` : `Следующий препарат ${next.name} в ${next.time}.`;
+    else text += Store.lang === 'en' ? `All done.` : `Всё принято.`;
+    const ut = new SpeechSynthesisUtterance(text);
+    ut.lang = Store.lang === 'ru' || Store.lang === 'kk' ? 'ru-RU' : 'en-US';
+    window.speechSynthesis.speak(ut);
+  }
+};
+
+const App = {
+  init() {
+    if (Store.theme === 'dark') { document.body.setAttribute('data-theme', 'dark'); document.getElementById('themeToggleBtn').innerText = '☀️'; }
+    document.getElementById('sysLang').value = Store.lang;
+
+    if (Store.user) {
+      document.getElementById('sysNav').style.display = 'flex';
+      this.nav('dashboard', document.querySelector('.nav-item:nth-child(1)'));
+      UI.renderAll();
+    } else {
+      document.getElementById('sysNav').style.display = 'none';
+      this.nav('auth');
+      translateUI();
+    }
+    window.addEventListener('resize', () => Analytics.draw());
+    document.getElementById('aiInput').addEventListener('keypress', e => { if(e.key === 'Enter') AIAgent.send(); });
+  },
+  nav(pageId, btn) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    if(btn) { document.querySelectorAll('.nav-item').forEach(b => b.classList.remove('active')); btn.classList.add('active'); }
+    document.getElementById('view-' + pageId).classList.add('active');
+    document.getElementById('sysHeader').style.display = (pageId === 'ai' || pageId === 'auth') ? 'none' : 'flex';
+    if(pageId === 'dashboard') setTimeout(() => Analytics.draw(), 50);
+  },
+  toggleTheme() {
+    Store.theme = Store.theme === 'light' ? 'dark' : 'light';
+    document.body.setAttribute('data-theme', Store.theme);
+    document.getElementById('themeToggleBtn').innerText = Store.theme === 'dark' ? '☀️' : '🌙';
+    Store.save(); Analytics.draw();
+  },
+  setLang() { Store.lang = document.getElementById('sysLang').value; Store.save(); UI.renderAll(); }
+};
+
+document.addEventListener("DOMContentLoaded", () => App.init());
+</script>
+</body>
+</html>
